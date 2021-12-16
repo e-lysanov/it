@@ -1,7 +1,6 @@
 import psycopg2
 import config
 import sys
-#import ui_dialog
 
 from PyQt5.QtWidgets import (
     QApplication,
@@ -20,6 +19,7 @@ from PyQt5.QtWidgets import (
     QDialog,
 )
 
+
 class MainWindow(QWidget):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -32,6 +32,7 @@ class MainWindow(QWidget):
         self.vbox.addWidget(self.tabs)
         self._create_teacher_tab()
         self._create_shedule_tab()
+        self._create_subject_tab()
 
     def setColortoRow(self, table, rowIndex, color):
         try:
@@ -71,56 +72,22 @@ class MainWindow(QWidget):
         self._create_shedule_table()
         self.update_shedule_button = QPushButton("Записать всю базу")
         self.day_selector = QComboBox(self)
+
         for indx, text in enumerate(config.buttons["day_menu"]):
             self.day_selector.addItem(text, indx)
         self.even_selector = QComboBox(self)
+
         for indx, text in enumerate(config.buttons["odd_menu"]):
             self.even_selector.addItem(text, indx)
         self.day_selector.activated.connect(self.handle_day_Activated)
         self.even_selector.activated.connect(self.handle_even_Activated)
-        
-        #self.add_subject_button = QPushButton("Добавить пару")
-        #self.shbox2.addWidget(self.add_subject_button)
-        #self.add_subject_button.clicked.connect(self._add_subject_dialog)
-        
         self.shbox2.addWidget(self.day_selector)
         self.shbox2.addWidget(self.even_selector)
         self.shbox2.addWidget(self.update_shedule_button)
         self.update_shedule_button.clicked.connect(self._rewrite_all_shedule)
         self.shedule_tab.setLayout(self.svbox)
 
-    #def _add_teacher_dialog(self):
-    #    dialog = QDialog()
-    #    dialog.ui = ui_dialog.UI_Teacher_Dialog()
-    #    dialog.ui.setupUi(dialog)
-    #    if dialog.exec_():
-    #        if dialog.ui.roiGroups["accept"]:
-    #            self._add_new_teacher(
-    #                dialog.ui.roiGroups["full_name"], dialog.ui.roiGroups["subject"]
-    #            )
 
-    #def _add_subject_dialog(self):
-    #    if self.shedule_table.rowCount() < 5:
-    #        self.cursor.execute(
-    #            "SELECT DISTINCT start_time FROM bin2001.timetable ORDER BY start_time"
-    #        )
-    #        time_record = list(self.cursor.fetchall())
-    #        self.cursor.execute("SELECT DISTINCT name FROM bin2001.subject")
-    #        subject_record = list(self.cursor.fetchall())
-    #        time_records = list(map(lambda x: str(x[0])[:-3], time_record))
-    #        subject_records = list(map(lambda x: str(x[0]), subject_record))
-    #        dialog = QDialog()
-    #        dialog.ui = ui_dialog.UI_Subject_Dialog()
-    #        dialog.ui.setupUi(dialog, subject_records, time_records)
-    #        if dialog.exec_():
-    #            if dialog.ui.roiGroups["accept"]:
-    #                self._add_new_day_subject(
-    #                    dialog.ui.roiGroups["subject"],
-    #                    dialog.ui.roiGroups["room"],
-    #                    dialog.ui.roiGroups["time"],
-    #                )
-    #    else:
-    #        QMessageBox.about(self, "Ошибка", "Больше 5и пар быть не может")
 
     def _create_teacher_tab(self):
         self.teacher_tab = QWidget()
@@ -136,11 +103,6 @@ class MainWindow(QWidget):
         self.update_teacher_button = QPushButton("Записать всю базу")
         self.shbox2.addWidget(self.update_teacher_button)
         self.update_teacher_button.clicked.connect(self._rewrite_all_teacher)
-        
-        #self.add_teacher_button = QPushButton("Добавить запись")
-        #self.shbox2.addWidget(self.add_teacher_button)
-        #self.add_teacher_button.clicked.connect(self._add_teacher_dialog)
-        
         self.teacher_tab.setLayout(self.svbox)
 
     def _create_teacher_table(self):
@@ -160,7 +122,7 @@ class MainWindow(QWidget):
         self.cursor.execute("SELECT * FROM bin2001.teacher")
         records = list(self.cursor.fetchall())
         self.teacher_table.setRowCount(0)
-        self.teacher_table.setRowCount(len(records)+1)
+        self.teacher_table.setRowCount(len(records) + 1)
         for i, r in enumerate(records):
             r = list(r)
             subject_records = list(map(lambda x: str(x[2]), records))
@@ -202,14 +164,13 @@ class MainWindow(QWidget):
                 )
             )
         insertButton = QPushButton("Внести")
-        self.teacher_table.setCellWidget(i+1, 2, insertButton)
+        self.teacher_table.setCellWidget(i + 1, 2, insertButton)
         insertButton.clicked.connect(
-            lambda ch, i=i+1: self._insert_teacher_from_table(
+            lambda ch, i=i + 1: self._insert_teacher_from_table(
                 i
             )
         )
         self.teacher_table.resizeRowsToContents()
-        
 
     def _create_shedule_table(self):
         self.shedule_table = QTableWidget()
@@ -232,7 +193,7 @@ class MainWindow(QWidget):
         records = list(self.cursor.fetchall())
         self.shedule_table.setRowCount(0)
         if len(records) < 5:
-            self.shedule_table.setRowCount(len(records)+1)
+            self.shedule_table.setRowCount(len(records) + 1)
         else:
             self.shedule_table.setRowCount(len(records))
         self.cursor.execute(
@@ -289,16 +250,114 @@ class MainWindow(QWidget):
             subject_selector.addItems(subjects)
             times_selector.addItems(times)
             insertButton = QPushButton("Внести")
-            self.shedule_table.setCellWidget(i+1, 0, subject_selector)
-            self.shedule_table.setCellWidget(i+1, 1, times_selector)
-            self.shedule_table.setCellWidget(i+1, 3, insertButton)
+            self.shedule_table.setCellWidget(i + 1, 0, subject_selector)
+            self.shedule_table.setCellWidget(i + 1, 1, times_selector)
+            self.shedule_table.setCellWidget(i + 1, 3, insertButton)
             insertButton.clicked.connect(
-                lambda ch, i=i+1: self._insert_shedule_from_table(
+                lambda ch, i=i + 1: self._insert_shedule_from_table(
                     i
                 )
             )
 
         self.shedule_table.resizeRowsToContents()
+
+    def _create_subject_tab(self):
+        self.subject_tab = QWidget()
+        self.tabs.addTab(self.subject_tab, "Предметы")
+        self.day_gbox = QGroupBox("Предметы")
+        self.svbox = QVBoxLayout()
+        self.shbox1 = QHBoxLayout()
+        self.shbox2 = QHBoxLayout()
+        self.svbox.addLayout(self.shbox1)
+        self.svbox.addLayout(self.shbox2)
+        self.shbox1.addWidget(self.day_gbox)
+        self._create_subject_table()
+        self.update_subject_button = QPushButton("Записать всю базу")
+        self.shbox2.addWidget(self.update_subject_button)
+        self.update_subject_button.clicked.connect(self._rewrite_all_teacher)
+        self.subject_tab.setLayout(self.svbox)
+
+    def _create_subject_table(self):
+        self.subject_table = QTableWidget()
+        self.subject_table.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
+        self.subject_table.setColumnCount(5)
+        self.subject_table.setColumnHidden(4, True)
+        self.subject_table.setHorizontalHeaderLabels(
+            ["Премет", "", "", ""]
+        )
+        self._update_subject_table()
+        self.mvbox = QVBoxLayout()
+        self.mvbox.addWidget(self.subject_table)
+        self.day_gbox.setLayout(self.mvbox)
+
+    def _update_subject_table(self):
+        self.cursor.execute("SELECT * FROM bin2001.subject")
+        records = list(self.cursor.fetchall())
+        self.subject_table.setRowCount(0)
+        self.subject_table.setRowCount(len(records) + 1)
+        for i, r in enumerate(records):
+            subject_records = list(map(lambda x: str(x[0]), records))
+            subjects = list()
+            joinButton = QPushButton("Обновить")
+            deleteButton = QPushButton("Удалить")
+            try:
+                subject_selector = QComboBox()
+                subject_records.remove(str(r[0]))
+                subjects.append(str(r[0]))
+                subjects.extend(subject_records)
+
+            except:
+                pass
+
+
+            subject_selector.addItems(subjects)
+            self.shedule_table.setCellWidget(i, 0, subject_selector)
+            #joinButton = QPushButton("Обновить")
+            #deleteButton = QPushButton("Удалить")
+            self.subject_table.setItem(i, 0, QTableWidgetItem(r[0]))
+            #self.subject_table.setCellWidget(i, 1, subject_selector)
+            self.subject_table.setCellWidget(i, 1, joinButton)
+            self.subject_table.setCellWidget(i, 2, deleteButton)
+            #self.subject_table.setItem(i, 3, QTableWidgetItem(str(r[0])))
+            db_row_id = r[0]
+
+            joinButton.clicked.connect(
+                lambda ch, i=i, r=r, db_row_id=db_row_id: self._change_subject_from_table(
+                    i, r, db_row_id
+                )
+            )
+            deleteButton.clicked.connect(
+                lambda ch, i=i, r=r, db_row_id=db_row_id: self._delete_subject_from_table(
+                    i, r, db_row_id
+                )
+            )
+        insertButton = QPushButton("Внести")
+        self.subject_table.setCellWidget(i +1 , 1, insertButton)
+        insertButton.clicked.connect(
+            lambda ch, i=i + 1: self._insert_subject_from_table(
+                i
+            )
+        )
+        self.subject_table.resizeRowsToContents()
+
+    def _change_subject_from_table(self, rowNum, row, db_row_id):
+        row = list()
+        for i in range(self.subject_table.columnCount()):
+            try:
+                row.append(self.subject_table.item(rowNum, i).text())
+            except AttributeError:
+                try:
+                    row.append(self.subject_table.cellWidget(rowNum, i).currentText())
+                except:
+                    row.append(None)
+        try:
+            self.cursor.execute(
+                "UPDATE bin2001.subject SET name = %s",
+                (row[0], db_row_id),
+            )
+            self.conn.commit()
+        except Exception as e:
+            QMessageBox.about(self, "Error", str(e))
 
     def _change_teacher_from_table(self, rowNum, row, db_row_id):
         row = list()
@@ -339,6 +398,18 @@ class MainWindow(QWidget):
         except Exception as e:
             QMessageBox.about(self, "Error", str(e))
 
+    def _add_new_subject(self, subject):
+        try:
+            self.cursor.execute(
+                "INSERT INTO bin2001.subject (name) VALUES (%s)", (str(subject),)
+            )
+
+            self.conn.commit()
+            self._update_subject()
+            self._update_shedule()
+        except Exception as e:
+            QMessageBox.about(self, "Error", str(e))
+
     def _add_new_teacher(self, full_name, subject):
         try:
             self.cursor.execute(
@@ -369,6 +440,26 @@ class MainWindow(QWidget):
             self.conn.commit()
             self._update_teacher()
             self._update_shedule()
+        except Exception as e:
+            QMessageBox.about(self, "Error", str(e))
+
+    def _delete_subject_from_table(self, rowNum, row, db_row_id):
+        row = list()
+        for i in range(self.subject_table.columnCount()):
+            try:
+                row.append(self.subject_table.item(rowNum, i).text())
+            except AttributeError:
+                try:
+                    row.append(self.subject_table.cellWidget(rowNum, i).currentText())
+                except:
+                    row.append(None)
+        try:
+            self.cursor.execute(
+                "DELETE FROM bin2001.subject WHERE name = %s", (row[0],)
+            )
+
+            self.conn.commit()
+            self._update_subject()
         except Exception as e:
             QMessageBox.about(self, "Error", str(e))
 
@@ -403,6 +494,34 @@ class MainWindow(QWidget):
             self._update_shedule()
         except Exception as e:
             QMessageBox.about(self, "Error", str(e))
+
+    def _rewrite_all_subject(self):
+        try:
+            for i in range(self.subject_table.rowCount()):
+                row = []
+                for j in range(self.subject_table.columnCount()):
+                    try:
+                        row.append(self.subject_table.item(i, j).text())
+                    except AttributeError:
+                        try:
+                            row.append(
+                                self.subject_table.cellWidget(i, j).currentText()
+                            )
+                        except:
+                            row.append(None)
+                self.cursor.execute(
+                    """
+                    UPDATE bin2001.subject
+                    SET name = %s
+                    
+                    """,
+                    (row[0]),
+                )
+            self.conn.commit()
+        except Exception as e:
+            QMessageBox.about(self, "Error", str(e))
+        else:
+            QMessageBox.about(self, "OK", "База успешно перезаписана")
 
     def _rewrite_all_teacher(self):
         try:
@@ -460,7 +579,7 @@ class MainWindow(QWidget):
             QMessageBox.about(self, "Error", str(e))
         else:
             QMessageBox.about(self, "OK", "База успешно перезаписана")
-        
+
     def _insert_shedule_from_table(self, rowNum):
         row = list()
         for i in range(self.shedule_table.columnCount()):
@@ -479,6 +598,21 @@ class MainWindow(QWidget):
             self.shedule_table.setItem(rowNum, 2, QTableWidgetItem(''))
             self._add_new_day_subject(row[0], row[2], row[1])
 
+    def _insert_subject_from_table(self, rowNum):
+        row = list()
+        for i in range(self.subject_table.columnCount()):
+            try:
+                row.append(self.subject_table.item(rowNum, i).text())
+            except AttributeError:
+                try:
+                    row.append(self.subject_table.cellWidget(rowNum, i).currentText())
+                except:
+                    row.append(None)
+        if row[0] == None:
+            QMessageBox.about(self, "Error", "Необходимо ввести данные")
+        else:
+            self.subject_table.setItem(rowNum, 0, QTableWidgetItem(''))
+            self._add_new_subject(row[0])
 
     def _insert_teacher_from_table(self, rowNum):
         row = list()
@@ -502,6 +636,10 @@ class MainWindow(QWidget):
 
     def _update_teacher(self):
         self._update_teacher_table()
+
+    def _update_subject(self):
+        self._update_subject_table()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

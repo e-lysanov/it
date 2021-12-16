@@ -1,10 +1,10 @@
-token = '' # токен бота
+token = '5000245694:AAFX6lTh79JaJMuw1QGX4uVnb9C1oKcJgHQ' # токен бота
 
 db_connect = { # настройки подключения к бд
-    'database':'telegram_bot',
-    'user':'',
-    'password':'',
-    'host':'',
+    'database':'bot',
+    'user':'p.lysanov',
+    'password':None,
+    'host':'localhost',
     'port':'5432'
 }
 

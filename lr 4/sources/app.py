@@ -2,16 +2,22 @@ import psycopg2
 import requests
 from flask import Flask, render_template, request, redirect
 
-conn = psycopg2.connect(database="flask_app",
-                        user="",
-                        password="",
-                        host="",
+conn = psycopg2.connect(database="flask",
+                        user="p.lysanov",
+                        password=None,
+                        host="localhost",
                         port="5432")
 
 app = Flask(__name__)
 app.debug = True
 
 cursor = conn.cursor()
+
+def is_number_in_string(string):
+    for letter in string:
+        if letter.isdigit():
+            return [True, 'В имени недопустимы числа']
+    return [False, None]
 
 @app.route('/login/', methods=['POST', 'GET'])
 def login():
@@ -39,6 +45,9 @@ def registration():
         password = request.form.get('password')
         if len(name) == 0 or len(login) == 0 or len(password) == 0:
             return render_template('error.html', err_text='Пустые поля недопустимы')
+        aboba = is_number_in_string(name)
+        if aboba[0]:
+            return render_template('error.html', err_text=aboba[1])
         cursor.execute("SELECT login FROM users WHERE login=%s", (str(login),))
         records = list(cursor.fetchall())
         if len(records) != 0:
